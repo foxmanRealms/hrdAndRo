@@ -35,8 +35,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // 이벤트가 비슷한 경우에 많이 사용된다
     @Override
     public void onClick(View view) {
+        // View : 이벤트 실행 주체의 정보를 가지고 있다
         // 어떤 버튼이 클릭되어졌는지??!
-        // --view 객체를 통해서 알 수 있다
+        // --view 객체를 통해서 알 수 있다. 판별할 수 있다
 
         // 단순히 btn_plus는 버튼 객체이다!
         // 우리는 버튼에 대한 id값이 필요하므로 R.id.btn_plus 를 통해
