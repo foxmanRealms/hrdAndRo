@@ -2,11 +2,13 @@ package com.example.ex220516;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -19,54 +21,81 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class Login_intent extends AppCompatActivity {
 
-    private Button btn_request;
-    private RequestQueue requestQueue; // 서버에 요청을 하는 객체   ///// 마치 intent와 같다
-    private StringRequest stringRequest; // 요청 시 필요한 문자열
-    private EditText edt_id, edt_pw, edt_nick, edt_phone; // 회원정보가 적혀있는 EditText 객체
+    private EditText edt_login_id,edt_login_pw;
+    private Button btn_login;
+    private RequestQueue requestQueue;
+    private StringRequest stringRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
-        edt_id=findViewById(R.id.edt_id);
-        edt_pw=findViewById(R.id.edt_pw);
-        edt_nick=findViewById(R.id.edt_nick);
-        edt_phone=findViewById(R.id.edt_phone);
+        edt_login_id= findViewById(R.id.edt_login_id);
+        edt_login_pw= findViewById(R.id.edt_login_pw);
+        btn_login= findViewById(R.id.btn_login);
 
-        btn_request=findViewById(R.id.btn_request);
-
-        btn_request.setOnClickListener(new View.OnClickListener() {
+        btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendRequest();
-
+                sendReqeust();
             }
         });
 
-
-
     }
 
-    public void sendRequest(){
+    public void sendReqeust(){
         // Request 객체 생성
         requestQueue= Volley.newRequestQueue(getApplicationContext()); ///// 안쪽 내용을 this로 대체할수있다
         // 서버에 요청할 주소
-        String url="http://211.48.228.42:8081/web/joinInsert.do";
-        
-        
+        String url="http://211.48.228.42:8081/web/andLogin.do";
+
+
         // 요청시 필요한 문자열 객체
         stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             // 응답데이터를 받아오는 곳 ///// 서버와 통신하면 마지막에 넘어오는 곳이다
             @Override
             public void onResponse(String response) {
                 Log.v("resultValue",response);
+                //Log.v("resultValue",response.length() +"");
+                if (response.length() > 0) {
+                    //로그인 성공
+                    try {
+                        JSONObject jsonObject=new JSONObject(response);
+                        String id=jsonObject.getString("id");
+                        String pw=jsonObject.getString("pw");
+                        String nick=jsonObject.getString("nick");
+                        String phone=jsonObject.getString("phone");
+                        Log.v("resultValue",id+"/"+pw+"/"+nick+"/"+phone);
+                        // 로그인 성공시 id,pw,nick,phone 데이터를 LoginSucecess Activity로
+                        // 전달하여서 TextView에 보여주게하시오
+                        // 단, MemberVo를 만들어서 활용할 것.
+
+                         MemberVo_intent vo= new MemberVo_intent(id,pw,nick,phone); ///// 인텐트로 넘겨줄때 사용하던 코드
+                        ///// 페이지를 넘어가려면 인텐트가 필요하다
+                        Intent intent=new Intent(getApplicationContext(), LoginSuccess_intent.class);
+                        ///// 인텐트는 기본자료형들만 기본적으로 지원하기 떄문에 vo를 직렬화해서 넣어주어야함
+                        intent.putExtra("vo",vo);
+                        startActivity(intent);
+
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }else{
+                    //로그인 실패
+                    Toast.makeText(getApplicationContext() , "로그인 실패",Toast.LENGTH_SHORT).show();
+                }
 
             }
         }, new Response.ErrorListener() {
@@ -91,21 +120,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-            // 보낼 데이터를 저장하는 곳 ///// 이곳이 중요하다 
+            // 보낼 데이터를 저장하는 곳 ///// 이곳이 중요하다
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<String, String>();
 
-                String id=edt_id.getText().toString();
-                String pw=edt_pw.getText().toString();
-                String nick=edt_nick.getText().toString();
-                String phone=edt_phone.getText().toString();
-
+                String id=edt_login_id.getText().toString();
+                String pw=edt_login_pw.getText().toString();
 
                 params.put("id",id );
                 params.put("pw",pw );
-                params.put("nick",nick );
-                params.put("phone",phone );
+
 //                edt_id.setText("");   ///// 입력했던 내용을 초기화시켜서 다음 입력을 편리하게 만든다 동시에 처리하다보니까 안되는 것이었다 임시로 주석처리
 //                edt_pw.setText("");
 //                edt_nick.setText("");
@@ -117,11 +142,8 @@ public class MainActivity extends AppCompatActivity {
         };
         stringRequest.setTag("main");  ///// 이곳은 구분자다. 보내오는 곳?을 확인하는것
         requestQueue.add(stringRequest);  ///// 이곳이 더 중요하다
-    }
 
 
 
     }
-
-
-
+}
